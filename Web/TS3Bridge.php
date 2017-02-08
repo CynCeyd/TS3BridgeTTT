@@ -19,17 +19,17 @@
 	 *
 	 * 	Use the mysql module only, if you are able to understand the sql code!
 	 */
-	$linkType = "mysql";
+	$linkType = "json";
 	
 	/*
 	 *	If you want to, you can set your own api key. For security matters.
 	 */
-	$apiKey = "abcdef";
+	$apiKey = "[apikey]";
 	
 	/*
 	 * Change the server query link for this script to be able to communicate with the TeamSpeak server. Server query needs certain permissions.
 	 */
-	$teamSpeakServerQuery = "serverquery://[user]:[password]@[host]:[serverqueryport]/?server_port=[ts3port]";
+	$teamSpeakServerQuery = "serverquery://[user]:[password]@[host]:[serverqueryport]/?server_port=[tsport]";
 	
 	/*
 	 * Auto kick if connection to server is lost
@@ -55,7 +55,7 @@
 	 * Uncomment if you want to use mysql 
 	 */
 	 
-	// $mysqli = new mysqli("localhost", "user", "password", "db");
+	//$mysqli = new mysqli("[host]", "[user]", "[password]", "[db]");
 	
 	
 	
@@ -64,11 +64,10 @@
 	//
 	//
 	//
-	//			Do not touch anything beneath, if you don't know what you are doing.
+	//			Do not touch anything below, if you don't know what you are doing.
 	//
 	//
 	//
-	
 	
 	if(isset($_GET['key'])) $key = escape($_GET['key']);
 	
@@ -95,13 +94,12 @@
 			}
 			
 			// you would need to change the sql code
-			$sql = 'select steamIDCol, tsIDCol
-					from	linktable';
+			$sql = '[sql query to get cols]';
 			
 			$result = $mysqli->query($sql);
 			
 			while ($row = $result->fetch_assoc()) {
-				$links[$row['[steamIDCol]']] = $row['[tsIDCol]'];
+				$links[$row['steamIDColumn']] = $row['tsIDColumn'];
 			}
 			
 			$result->free();
@@ -122,18 +120,26 @@
 		}
 		return str_replace("'", "''", $str);
 	}
-	
-	function getTsID($steamID)
-	{
-		return (isset($links[$steamID]) ? $links[$steamID] : die("No linked user account"));
-	}
-		
-	
+
+
 	if(isset($_GET['steamID'])) $steamID = escape($_GET['steamID']);
 	if(isset($_GET['action'])) $action = escape($_GET['action']);
 
+	function getTsID($steamID)
+	{
+		global $links;
+	
+		if(isset($links[$steamID])){
+			return $links[$steamID];
+		}else{
+			die("No linked user account");
+		}
+	}
+		
 	$client = getTsID($steamID);
 	
+	$ts3_VirtualServer = TeamSpeak3::factory($teamSpeakServerQuery);
+
 	switch($action){
 		
 		case "connect":
@@ -141,15 +147,16 @@
 				try {
 						
 					if($autoChannelMove) $ts3_VirtualServer->clientGetByUid($client)->move($ts3_VirtualServer->channelGetByName($channelName)->getId());
-						
+					
+					if($grantTalkPowerOnJoin) $ts3_VirtualServer->clientGetByUid($client)->modify(array(
+						"CLIENT_IS_TALKER" => 1
+					));
 				}catch(Exception $ex){
 					if(strpos($ex->getMessage(), "invalid client") !== false) die("You are not on the TeamSpeak 3 Server");
 				}	
 
 					
-				if($grantTalkPowerOnJoin) $ts3_VirtualServer->clientGetByUid($client)->modify(array(
-					"CLIENT_IS_TALKER" => 1
-				));
+				
 			die("OK");	
 			
 			break;

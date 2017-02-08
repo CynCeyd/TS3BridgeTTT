@@ -1,13 +1,16 @@
 -- URL Format: http://example.com/ts3bridge.php
 
-local tsBridgeUrl = CreateConVar("ttt_ts3_bridge_url", "", {FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE}, "The URL for the TS3 bridge")
-local tsBridgeKey = CreateConVar("ttt_ts3_bridge_key", "", {FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE}, "The API key for the TS3 bridge")
+tsBridgeUrl = CreateConVar("ttt_ts3_bridge_url", "", {FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The URL for the TS3 bridge")
+tsBridgeKey = CreateConVar("ttt_ts3_bridge_key", "", {FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE, FCVAR_REPLICATED}, "The API key for the TS3 bridge")
+
+GetConVarString ( "ttt_ts3_bridge_url" )
+GetConVarString ( "ttt_ts3_bridge_key" )
 
 local function isempty(s)
   return s == nil or s == ''
 end
 
-if isempty(tsBridgeUrl) then
+if not isempty(tsBridgeUrl:GetString()) then
 
 	gameevent.Listen( "entity_killed" )
 	gameevent.Listen( "TTTBeginRound" )
@@ -19,7 +22,7 @@ if isempty(tsBridgeUrl) then
 				if ( v:Alive() ) then
 					-- Do nothing
 				else
-					http.Fetch( tsBridgeUrl .. "?key=" .. tsBridgeKey . "&action=mute&steamID=" .. v:SteamID())
+					http.Fetch( tsBridgeUrl:GetString() .. "?key=" .. tsBridgeKey:GetString() .. "&action=mute&steamID=" .. v:SteamID())
 				end
 			end
 
@@ -28,7 +31,7 @@ if isempty(tsBridgeUrl) then
 
 		for k, v in pairs( player.GetAll() ) do
 			if ( v:Alive() ) then
-				http.Fetch( tsBridgeUrl .. "?key=" .. tsBridgeKey . "&action=unmute&steamID=" .. v:SteamID())
+				http.Fetch( tsBridgeUrl:GetString() .. "?key=" .. tsBridgeKey:GetString() .. "&action=unmute&steamID=" .. v:SteamID())
 			else
 				-- Do Nothing
 			end
@@ -42,7 +45,7 @@ if isempty(tsBridgeUrl) then
 		hook.Remove( "entity_killed", "entity_killed_example")
 		
 		for k, v in pairs( player.GetAll() ) do
-				http.Fetch( tsBridgeUrl .. "?key=" .. tsBridgeKey . "&action=unmute&steamID=" .. v:SteamID())
+				http.Fetch( tsBridgeUrl:GetString() .. "?key=" .. tsBridgeKey:GetString() .. "&action=unmute&steamID=" .. v:SteamID())
 		end
 	end
 	)
@@ -61,7 +64,7 @@ if isempty(tsBridgeUrl) then
 		end
 
 
-		http.Fetch( tsBridgeUrl .. "?key=" .. tsBridgeKey . "&action=connect&steamID=" .. steamID,
+		http.Fetch( tsBridgeUrl:GetString() .. "?key=" .. tsBridgeKey:GetString() .. "&action=connect&steamID=" .. steamID,
 			function( body, len, headers, code )
 				if(body ~= "OK") then
 
@@ -73,7 +76,7 @@ if isempty(tsBridgeUrl) then
 						end
 					end
 
-					http.Fetch( tsBridgeUrl .. "?key=" .. tsBridgeKey . "&action=kick&steamID=" .. steamID)
+					http.Fetch( tsBridgeUrl:GetString() .. "?key=" .. tsBridgeKey:GetString() .. "&action=kick&steamID=" .. steamID)
 
 				end
 			end,
@@ -88,7 +91,7 @@ if isempty(tsBridgeUrl) then
 	gameevent.Listen( "player_disconnect" )
 	hook.Add("player_disconnect", "player_disconnect_example", function(data)
 
-		http.Fetch( tsBridgeUrl .. "?key=" .. tsBridgeKey . "&action=kick&steamID=" .. data["networkid"])
+		http.Fetch( tsBridgeUrl:GetString() .. "?key=" .. tsBridgeKey:GetString() .. "&action=kick&steamID=" .. data["networkid"])
 		
 	end
 	)
