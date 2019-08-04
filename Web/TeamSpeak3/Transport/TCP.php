@@ -4,8 +4,6 @@
  * @file
  * TeamSpeak 3 PHP Framework
  *
- * $Id: TCP.php 06/06/2016 22:27:13 scp@Svens-iMac $
- *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,9 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * @package   TeamSpeak3
- * @version   1.1.24
  * @author    Sven 'ScP' Paulsen
- * @copyright Copyright (c) 2010 by Planet TeamSpeak. All rights reserved.
+ * @copyright Copyright (c) Planet TeamSpeak. All rights reserved.
  */
 
 /**
@@ -41,21 +38,52 @@ class TeamSpeak3_Transport_TCP extends TeamSpeak3_Transport_Abstract
   {
     if($this->stream !== null) return;
 
-    $host = strval($this->config["host"]);
-    $port = strval($this->config["port"]);
+    $host     = strval($this->config["host"]);
+    $port     = strval($this->config["port"]);
+    $timeout  = intval($this->config["timeout"]);
+    $blocking = intval($this->config["blocking"]);
 
-    $address = "tcp://" . (strstr($host, ":") !== FALSE ? "[" . $host . "]" : $host) . ":" . $port;
-    $timeout = (int) $this->config["timeout"];
-
-    $this->stream = @stream_socket_client($address, $errno, $errstr, $timeout);
-
-    if($this->stream === FALSE)
+    if(empty($this->config["ssh"]))
     {
-      throw new TeamSpeak3_Transport_Exception(TeamSpeak3_Helper_String::factory($errstr)->toUtf8()->toString(), $errno);
+      $address = "tcp://" . (strstr($host, ":") !== FALSE ? "[" . $host . "]" : $host) . ":" . $port;
+      $options = empty($this->config["tls"]) ? array() : array("ssl" => array("allow_self_signed" => TRUE, "verify_peer" => FALSE, "verify_peer_name" => FALSE));
+
+      $this->stream = @stream_socket_client($address, $errno, $errstr, $this->config["timeout"], STREAM_CLIENT_CONNECT, stream_context_create($options));
+
+      if($this->stream === FALSE)
+      {
+        throw new TeamSpeak3_Transport_Exception(TeamSpeak3_Helper_String::factory($errstr)->toUtf8()->toString(), $errno);
+      }
+
+      if(!empty($this->config["tls"]))
+      {
+        stream_socket_enable_crypto($this->stream, TRUE, STREAM_CRYPTO_METHOD_SSLv23_CLIENT);
+      }
+    }
+    else
+    {
+      $this->session = @ssh2_connect($host, $port);
+
+      if($this->session === FALSE)
+      {
+        throw new TeamSpeak3_Transport_Exception("failed to establish secure shell connection to server '" . $this->config["host"] . ":" . $this->config["port"] . "'");
+      }
+
+      if(!@ssh2_auth_password($this->session, $this->config["username"], $this->config["password"]))
+      {
+        throw new TeamSpeak3_Adapter_ServerQuery_Exception("invalid loginname or password", 0x208);
+      }
+
+      $this->stream = @ssh2_shell($this->session, "raw");
+
+      if($this->stream === FALSE)
+      {
+        throw new TeamSpeak3_Transport_Exception("failed to open a secure shell on server '" . $this->config["host"] . ":" . $this->config["port"] . "'");
+      }
     }
 
     @stream_set_timeout($this->stream, $timeout);
-    @stream_set_blocking($this->stream, $this->config["blocking"] ? 1 : 0);
+    @stream_set_blocking($this->stream, $blocking ? 1 : 0);
   }
 
   /**
@@ -68,6 +96,11 @@ class TeamSpeak3_Transport_TCP extends TeamSpeak3_Transport_Abstract
     if($this->stream === null) return;
 
     $this->stream = null;
+
+    if(is_resource($this->session))
+    {
+      @ssh2_disconnect($this->session);
+    }
 
     TeamSpeak3_Helper_Signal::getInstance()->emit(strtolower($this->getAdapterType()) . "Disconnected");
   }
@@ -147,7 +180,7 @@ class TeamSpeak3_Transport_TCP extends TeamSpeak3_Transport_Abstract
   {
     $this->connect();
 
-    @stream_socket_sendto($this->stream, $data);
+    @fwrite($this->stream, $data);
 
     TeamSpeak3_Helper_Signal::getInstance()->emit(strtolower($this->getAdapterType()) . "DataSend", $data);
   }
