@@ -79,8 +79,7 @@ Further parameters are:
 If there are any problems with this script, feel free to ask / comment - I will try to help or fix and issues as fast as possible.
 
 -----------------
-This plugin uses the TeamSpeak 3 PHP Framework (https://docs.planette
-amspeak.com/ts3/php/framework/).
+This plugin uses the TeamSpeak 3 PHP Framework (https://docs.planetteamspeak.com/ts3/php/framework/).
 
 It's recommended to disable the talk power granted / revoked sounds in TeamSpeak, as it might get annoying after a while of playing.
 
