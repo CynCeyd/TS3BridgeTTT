@@ -137,37 +137,37 @@
 			$this->_params = $params;
 			$this->_linkCache = $linkCache;
 			
-			if(!defined("TEAMSPEAK_QUERY_USERNAME") || !is_array(TEAMSPEAK_QUERY_USERNAME))
+			if(!defined("TEAMSPEAK_QUERY_USERNAME"))
 			{
 				$this->debug("No TeamSpeak query user is present.");
 				exit;
 			}
 			
-			if(!defined("TEAMSPEAK_QUERY_PASSWORD") || !is_array(TEAMSPEAK_QUERY_PASSWORD))
+			if(!defined("TEAMSPEAK_QUERY_PASSWORD"))
 			{
 				$this->debug("No TeamSpeak query password is present.");
 				exit;
 			}
 			
-			if(!defined("TEAMSPEAK_QUERY_HOST") || !is_array(TEAMSPEAK_QUERY_HOST))
+			if(!defined("TEAMSPEAK_QUERY_HOST"))
 			{
 				$this->debug("No TeamSpeak query host is present.");
 				exit;
 			}
 			
-			if(!defined("TEAMSPEAK_QUERY_PORT") || !is_array(TEAMSPEAK_QUERY_PORT))
+			if(!defined("TEAMSPEAK_QUERY_PORT"))
 			{
 				$this->debug("No TeamSpeak query port is present.");
 				exit;
 			}
 			
-			if(!defined("TEAMSPEAK_SERVER_PORT") || !is_array(TEAMSPEAK_SERVER_PORT))
+			if(!defined("TEAMSPEAK_SERVER_PORT"))
 			{
 				$this->debug("No TeamSpeak server port is present.");
 				exit;
 			}
 			
-			if(!defined("TEAMSPEAK_QUERY_BOT_NICK") || !is_array(TEAMSPEAK_QUERY_BOT_NICK))
+			if(!defined("TEAMSPEAK_QUERY_BOT_NICK"))
 			{
 				$this->debug("No TeamSpeak query bot nick is present.");
 				exit;
