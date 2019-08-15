@@ -8,14 +8,12 @@
 	/*
 	 * Change the TeamSpeak connection parameters in this script to be able to communicate with the TeamSpeak server. Server query needs certain permissions.
 	 */
-	define("TEAMSPEAK_CONNECTION_PARAMS", array(
-		"queryUserName" => "[query_user]",
-		"queryPassword" => "[query_password]",
-		"host" => "[host]",
-		"queryPort" => [query_port],
-		"serverPort" => [server_port],
-		"botNick" => "TTT Bot"
-	));
+	define("TEAMSPEAK_QUERY_USERNAME", "[query_user]");
+	define("TEAMSPEAK_QUERY_PASSWORD", "[query_password]");
+	define("TEAMSPEAK_QUERY_HOST", "[host]");
+	define("TEAMSPEAK_QUERY_PORT", "[query_port]");
+	define("TEAMSPEAK_SERVER_PORT", "[server_port]");
+	define("TEAMSPEAK_QUERY_BOT_NICK", "TTT Bot");
 	
 	/**
 	 * Indicates whether players shall be kicked out of the channel after leaving
@@ -48,11 +46,9 @@
 	define("SCAN_SPECIFIED_CHANNELS_ONLY", false);
 
 	/**
-	 * Channels to scan for automatic linking
+	 * Channels to scan for automatic linking; please separate by comma
 	 */
-	define("CHANNELS_TO_SCAN", array(
-		"Trouble in Terrorist Town"
-	));
+	define("CHANNELS_TO_SCAN", "Trouble in Terrorist Town");
 
 	/**
 	 * When this option is enabled, all account links from the respective Steam IDs and TeamSpeak IDs will be saved permanentely.
@@ -141,9 +137,39 @@
 			$this->_params = $params;
 			$this->_linkCache = $linkCache;
 			
-			if(!defined("TEAMSPEAK_CONNECTION_PARAMS") || !is_array(TEAMSPEAK_CONNECTION_PARAMS))
+			if(!defined("TEAMSPEAK_QUERY_USERNAME") || !is_array(TEAMSPEAK_QUERY_USERNAME))
 			{
-				$this->debug("No TeamSpeak connection parameters are present.");
+				$this->debug("No TeamSpeak query user is present.");
+				exit;
+			}
+			
+			if(!defined("TEAMSPEAK_QUERY_PASSWORD") || !is_array(TEAMSPEAK_QUERY_PASSWORD))
+			{
+				$this->debug("No TeamSpeak query password is present.");
+				exit;
+			}
+			
+			if(!defined("TEAMSPEAK_QUERY_HOST") || !is_array(TEAMSPEAK_QUERY_HOST))
+			{
+				$this->debug("No TeamSpeak query host is present.");
+				exit;
+			}
+			
+			if(!defined("TEAMSPEAK_QUERY_PORT") || !is_array(TEAMSPEAK_QUERY_PORT))
+			{
+				$this->debug("No TeamSpeak query port is present.");
+				exit;
+			}
+			
+			if(!defined("TEAMSPEAK_SERVER_PORT") || !is_array(TEAMSPEAK_SERVER_PORT))
+			{
+				$this->debug("No TeamSpeak server port is present.");
+				exit;
+			}
+			
+			if(!defined("TEAMSPEAK_QUERY_BOT_NICK") || !is_array(TEAMSPEAK_QUERY_BOT_NICK))
+			{
+				$this->debug("No TeamSpeak query bot nick is present.");
 				exit;
 			}
 
@@ -158,7 +184,7 @@
 			if(!defined("GRANT_TALK_POWER_ON_JOIN")) define("GRANT_TALK_POWER_ON_JOIN", true);
 			if(!defined("REQUEST_DIRECTORY")) define("REQUEST_DIRECTORY", "Requests/");
 			if(!defined("SCAN_SPECIFIED_CHANNELS_ONLY")) define("SCAN_SPECIFIED_CHANNELS_ONLY", false);
-			if(!defined("CHANNELS_TO_SCAN")) define("CHANNELS_TO_SCAN", array());
+			if(!defined("CHANNELS_TO_SCAN")) define("CHANNELS_TO_SCAN", "");
 			if(!defined("USE_LINK_CACHE")) define("USE_LINK_CACHE", true);
 			if(!defined("DEBUG_MODE")) define("DEBUG_MODE", false);
 			if(!defined("ALLOW_DEBUG_IN_RESPONSE")) define("ALLOW_DEBUG_IN_RESPONSE", false);
@@ -193,12 +219,12 @@
 		private function buildConnectionString()
 		{
 			return sprintf("serverquery://%s:%s@%s:%d/?server_port=%d&nickname=%s",
-				TEAMSPEAK_CONNECTION_PARAMS["queryUserName"],
-				TEAMSPEAK_CONNECTION_PARAMS["queryPassword"],
-				gethostbyname(TEAMSPEAK_CONNECTION_PARAMS["host"]),
-				TEAMSPEAK_CONNECTION_PARAMS["queryPort"],
-				TEAMSPEAK_CONNECTION_PARAMS["serverPort"],
-				rawurlencode(TEAMSPEAK_CONNECTION_PARAMS["botNick"]));
+				TEAMSPEAK_QUERY_USERNAME,
+				TEAMSPEAK_QUERY_PASSWORD,
+				gethostbyname(TEAMSPEAK_QUERY_HOST),
+				TEAMSPEAK_QUERY_PORT,
+				TEAMSPEAK_SERVER_PORT,
+				rawurlencode(TEAMSPEAK_QUERY_BOT_NICK));
 		}
 		
 		/**
@@ -247,7 +273,9 @@
 			{
 				$clientList = array();
 				
-				foreach(CHANNELS_TO_SCAN as $channelName)
+				$channelsToScan = explode(",", CHANNELS_TO_SCAN);
+				
+				foreach($channelsToScan as $channelName)
 				{
 					$clientList = array_merge($clientList, $ts3_VirtualServer->channelGetByName($channelName)->clientList());
 				}
