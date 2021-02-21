@@ -221,11 +221,20 @@ local function hook_begin_round()
 				mute(victim:SteamID(), victim:IPAddress(), victim:Nick())
 			end
 		)
-		
+				
 		hook.Add( "PlayerSilentDeath", "PlayerSilentDeath_ts3_bridge", 
 			function( ply )
 				mute(ply:SteamID(), ply:IPAddress(), ply:Nick())
 			end
+		)
+		
+		hook.Add( "PlayerChangedTeam", "TeamChange", 
+			function( ply, oldTeam, newTeam )
+				local changedToTeam = team.GetName( newTeam )
+				if changedToTeam == ("Spectators") then  
+					mute(ply:SteamID(), ply:IPAddress(), ply:Nick())
+				end
+			end 
 		)
 	end
 	)
@@ -309,6 +318,9 @@ local function hook_player_spawn()
 						end
 					end
 				)
+				if ply:Team() != 1002 then -- dont unmute when the player spawns as a spectator
+					unmute(ply:SteamID(), ply:IPAddress(), ply:Nick())
+				end
 			end
 		end
 	)
