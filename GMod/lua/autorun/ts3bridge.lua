@@ -228,14 +228,14 @@ local function hook_begin_round()
 			end
 		)
 		
-		hook.Add( "PlayerChangedTeam", "TeamChange", 
-			function( ply, oldTeam, newTeam )
-				local changedToTeam = team.GetName( newTeam )
-				if changedToTeam == ("Spectators") then  
-					mute(ply:SteamID(), ply:IPAddress(), ply:Nick())
-				end
-			end 
-		)
+		--hook.Add( "PlayerChangedTeam", "TeamChange", 
+		--	function( ply, oldTeam, newTeam )
+		--		local changedToTeam = team.GetName( newTeam )
+		--		if changedToTeam == ("Spectators") then  
+		--			mute(ply:SteamID(), ply:IPAddress(), ply:Nick())
+		--		end
+		--	end 
+		--)
 	end
 	)
 end
@@ -437,7 +437,7 @@ local function setup()
 	hook_end_round()
 	hook_player_spawn()
 	hook_player_disconnect()
-	
+		
 	log("Hooks applied")
 end
 
@@ -448,39 +448,52 @@ end
 log("Loading TeamSpeak 3 bridge")
 
 static_params = static_params or {}
+local isInitialized = false
 
-if not is_nil_or_empty(ts_bridge_key) then
+hook.Add( "PlayerConnect", "InitialSetupFunction", function()
+	if not isInitialized then
+		httpsetup() -- Initial HTTP Setup
+	end
+end 
+)
 
-	try(function() -- try
-			
-			-- Fetch the api version
-			http_get({action="version"}, 
-				function(response)
-					-- Get the api version
-					version = tonumber(response) or 1
+
+function httpsetup()
+	if not is_nil_or_empty(ts_bridge_key) then
+
+		try(function() -- try
 				
-					-- Add the api version to the static parameters for every request
-					static_params.version = version
+				-- Fetch the api version
+				http_get({action="version"}, 
+					function(response)
+						-- Get the api version
+						version = tonumber(response) or 1
 					
-					setup()
+						-- Add the api version to the static parameters for every request
+						static_params.version = version
+						
+						setup()
+						
+						isInitialized = true -- not needed anymore, since the addon is already set up
+					end
+				)
+			end,
+			function(exception) -- catch
+				
+				-- Improved error handling
+				
+				if(string.match(exception, "Assertion Failed: pHost && *pHost")) then
+					log("The given uri is invalid. Did you maybe forget the quotation marks enclosing the uri in the server configuration?")
+				else
+					log(exception)
 				end
-			)
-		end,
-		function(exception) -- catch
 			
-			-- Improved error handling
-			
-			if(string.match(exception, "Assertion Failed: pHost && *pHost")) then
-				log("The given uri is invalid. Did you maybe forget the quotation marks enclosing the uri in the server configuration?")
-			else
-				log(exception)
 			end
-		
-		end
-	)
+		)
 
-else
-	log("TS3 Bridge uri is empty")
+	else
+		log("TS3 Bridge uri is empty")
+	end
 end
 
 -- End Script
