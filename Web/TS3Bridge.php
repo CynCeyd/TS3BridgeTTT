@@ -333,7 +333,7 @@
 			{
 				$client = array_shift($clientsMatchingIpAddress);
 
-				if(USE_LINK_CACHE && (string)$client["client_unique_identifier"] != TEAMSPEAK_CONNECTION_PARAMS["queryUserName"]) 
+				if(USE_LINK_CACHE && (string)$client["client_unique_identifier"] != TEAMSPEAK_QUERY_BOT_NICK) 
 					$this->_linkCache->createLink($steamId, (string)$client["client_unique_identifier"]);
 				
 				return $client;
@@ -344,7 +344,7 @@
 			
 			if(isset($clientMatchingName))
 			{
-				if(USE_LINK_CACHE && (string)$clientMatchingName["client_unique_identifier"] != TEAMSPEAK_CONNECTION_PARAMS["queryUserName"]) 
+				if(USE_LINK_CACHE && (string)$clientMatchingName["client_unique_identifier"] != TEAMSPEAK_QUERY_BOT_NICK) 
 					$this->_linkCache->createLink($steamId, (string)$clientMatchingName["client_unique_identifier"]);
 				
 				return $clientMatchingName;
@@ -373,7 +373,7 @@
 				$clientUids = array_keys($similarityToClients);
 				$client = $this->_teamSpeak->clientGetByUid(array_shift($clientUids));
 				
-				if(USE_LINK_CACHE && (string)$client["client_unique_identifier"] != TEAMSPEAK_CONNECTION_PARAMS["queryUserName"]) 
+				if(USE_LINK_CACHE && (string)$client["client_unique_identifier"] != TEAMSPEAK_QUERY_BOT_NICK) 
 					$this->_linkCache->createLink($steamId, (string)$client["client_unique_identifier"]);
 				
 				return $client;
@@ -392,9 +392,7 @@
 		{
 			if(defined("API_KEY"))
 			{
-				if(isset($this->_params["key"])) $apiKey = $this->_params["key"];
-				
-				if($apiKey !== API_KEY)
+				if(!isset($this->_params["key"]) || $this->_params["key"] !== API_KEY)
 				{
 					header("HTTP/1.0 403 Forbidden"); 
 					echo("Your api key is invalid."); 
@@ -405,7 +403,7 @@
 
 			if(isset($this->_params["action"])) $action = $this->_params["action"];
 				
-			if (in_array($action, $this->_allowedMethods) && method_exists($this, $action))
+			if (isset($action) && in_array($action, $this->_allowedMethods) && method_exists($this, $action))
 			{
 				call_user_func(array($this, $action), $this->_params);
 			}else{
