@@ -430,6 +430,7 @@ local function setup()
 	gameevent.Listen( "TTTBeginRound" )
 	gameevent.Listen( "TTTEndRound" )
 	gameevent.Listen( "PlayerSay" )
+	gameevent.Listen( "Initialize" )
 	
 	hook_player_say()
 	
@@ -448,12 +449,12 @@ end
 log("Loading TeamSpeak 3 bridge")
 
 static_params = static_params or {}
-local isInitialized = false
+--local isInitialized = false
 
-hook.Add( "PlayerConnect", "InitialSetupFunction", function()
-	if not isInitialized then
-		httpsetup() -- Initial HTTP Setup
-	end
+hook.Add( "Initialize", "InitialSetupFunction", function()
+	--if not isInitialized then
+	httpsetup() -- Initial HTTP Setup
+	--end
 end 
 )
 
@@ -474,7 +475,7 @@ function httpsetup()
 						
 						setup()
 						
-						isInitialized = true -- not needed anymore, since the addon is already set up
+						--isInitialized = true -- not needed anymore, since the addon is already set up
 					end
 				)
 			end,
